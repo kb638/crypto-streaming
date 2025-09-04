@@ -2,6 +2,10 @@
   "name": "project-pluto-crypto-streaming",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "install:all": "pnpm install --recursive",
     "dev:backend": "pnpm --filter @pluto/backend dev",
@@ -9,6 +13,14 @@
     "dev": "concurrently -k -n backend,frontend \"pnpm dev:backend\" \"pnpm dev:frontend\""
   },
   "devDependencies": {
-    "concurrently": "^9.0.1"
+    "@bufbuild/buf": "^1.57.0",
+    "@bufbuild/protoc-gen-es": "^2.7.0",
+    "@types/node": "22.7.4",
+    "concurrently": "^9.0.1",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.7.0",
+    "@connectrpc/connect": "^2.1.0"
   }
 }

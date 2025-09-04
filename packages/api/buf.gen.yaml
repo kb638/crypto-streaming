@@ -1,8 +1,9 @@
-version: v1
+# packages/api/buf.gen.yaml
+version: v2
 plugins:
-  - plugin: buf.build/bufbuild/es
+  - local: protoc-gen-es
     out: gen
-    opt: target=ts
-  - plugin: buf.build/connectrpc/es
-    out: gen
-    opt: target=ts
+    opt:
+      - target=ts
+      # add ".js" to ESM imports so NodeNext & Next.js are happy
+      - import_extension=js
