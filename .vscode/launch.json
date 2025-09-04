@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "Run Both (Backend + Frontend)",
+      "configurations": ["Backend (tsx)", "Frontend (Next)"],
+      "preLaunchTask": "Install (pnpm recursive)"
+    }
+  ],
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Backend (tsx)",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@pluto/backend", "run", "dev"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "type": "node-terminal",
+      "name": "Frontend (Next)",
+      "command": "pnpm --filter @pluto/frontend dev",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

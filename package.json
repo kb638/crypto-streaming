@@ -1,0 +1,14 @@
+{
+  "name": "project-pluto-crypto-streaming",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "install:all": "pnpm install --recursive",
+    "dev:backend": "pnpm --filter @pluto/backend dev",
+    "dev:frontend": "pnpm --filter @pluto/frontend dev",
+    "dev": "concurrently -k -n backend,frontend \"pnpm dev:backend\" \"pnpm dev:frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}

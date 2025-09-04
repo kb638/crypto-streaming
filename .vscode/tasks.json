@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Install (pnpm recursive)",
+      "type": "shell",
+      "command": "pnpm install --recursive",
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: Backend",
+      "type": "shell",
+      "command": "pnpm --filter @pluto/backend dev",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: Frontend",
+      "type": "shell",
+      "command": "pnpm --filter @pluto/frontend dev",
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}
