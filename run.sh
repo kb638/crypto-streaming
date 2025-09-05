@@ -10,7 +10,8 @@ echo "[setup] 2) Generating protobuf code (packages/api)..."
 pnpm -C packages/api exec buf generate .
 
 echo "[setup] 3) Installing Playwright Chromium (backend)..."
-pnpm -F @pluto/backend playwright install chromium
+# Use exec to run the local Playwright binary from node_modules
+pnpm -F @pluto/backend exec playwright install chromium
 
 # Frontend base URL (can override via env)
 export NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080}"
