@@ -1,46 +1,64 @@
-Project Pluto — Crypto Price Streaming
-A full-stack web application that streams live cryptocurrency prices from TradingView using Playwright, with a Node.js backend and Next.js frontend.
-Built as part of the Project Pluto coding assessment.
+Project Pluto — Fullstack Engineer Coding Assessment
+Overview
+This project is a full-stack web application that streams real-time cryptocurrency prices from TradingView. It demonstrates backend scraping with Playwright, server-streaming with ConnectRPC, and a React/Next.js frontend for live updates.
 Tech Stack
 - TypeScript
-- Node.js
 - Next.js
-- pnpm (package manager)
-- ConnectRPC for backend/frontend communication
-- Playwright for browser automation and price scraping
+- Node.js
+- tsx for TypeScript execution
+- pnpm for package management
+- ConnectRPC for communication
+- Playwright for scraping TradingView
+
 Features
-- Add and remove cryptocurrency tickers (e.g., BTCUSD, ETHUSD, SOLUSD)
-- Real-time price updates streamed directly from TradingView
-- Playwright runs in headed mode so browser actions are visible
-- Alphabetically sorted ticker list in the UI
-- Graceful handling of ticker removal and backend cleanup
-- Exposes health check (/health) and metrics (/metrics) endpoints
+- Add/remove cryptocurrency tickers (e.g., BTCUSD, ETHUSD).
+- Live streaming of prices directly from TradingView (BINANCE exchange).
+- Prices update with minimal latency using server-streaming.
+- Playwright runs in headed mode so browser automation is visible.
+- UI shows live tickers sorted alphabetically with up/down flash indicators.
+- Backend metrics and health endpoints.
+- Graceful shutdown and per-ticker session management.
+
 Requirements
-- Node.js >= 18
-- pnpm >= 8
+- Node.js v20+
+- pnpm v10+
+- Playwright (installed via pnpm)
 - bash (for run.sh)
-Installation & Run
-Clone the repository and run:
 
-bash run.sh
+Installation & Running
+1. Clone the repository.
+2. Run the following command to install dependencies recursively:
+   
+   pnpm install --recursive
+   
+3. To generate protobuf code:
+   
+   pnpm -w exec buf generate packages/api
+   
+4. To start the development servers:
+   
+   pnpm dev
+   
+   This runs both backend (http://localhost:8080) and frontend (http://localhost:3000).
+   
+5. Alternatively, use the provided run.sh script (Linux/macOS):
+   
+   bash run.sh
+   
+   This will install dependencies, generate protobufs, and start the app.
+   
+   On Windows, you can run the same steps manually or use Git Bash to execute run.sh.
 
-The script will:
-1. Install all dependencies (pnpm install --recursive)
-2. Generate protobuf code (buf generate)
-3. Start both backend and frontend (pnpm dev)
-Access
-- Frontend (Next.js): http://localhost:3000
-- Backend (ConnectRPC): http://localhost:8080
-Development Notes
-- Prices are streamed from URLs of the format:
-  https://www.tradingview.com/symbols/{ticker}/?exchange=BINANCE
-- Playwright sessions are capped (configurable in config.ts) to avoid resource overload
-- Ticker streams are throttled slightly to avoid flooding the UI
-- Closing a ticker releases backend resources after a short grace window
-Health & Metrics
-- GET /health → returns service health
-- GET /metrics → returns current Playwright session stats
-Submission
-- All dependencies are listed in package.json
-- pnpm install --recursive installs everything needed
-- ./run.sh launches the full application
+Usage
+- Open http://localhost:3000 in your browser.
+- Enter a ticker (e.g., BTCUSD, ETHUSDT) and press Enter or click Add.
+- The app opens a Playwright browser window (headed) and scrapes prices.
+- Prices are streamed to the frontend with live updates.
+- Remove a ticker by clicking the × button.
+
+Notes
+- For simplicity, the exchange is fixed to BINANCE.
+- Playwright sessions are reused and managed with ref counts.
+- Sessions are automatically closed when unused.
+- The run.sh script is provided for Linux/macOS environments as expected by the evaluator.
+
