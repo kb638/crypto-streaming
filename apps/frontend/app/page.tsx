@@ -12,10 +12,23 @@ type Row = {
   flash?: "up" | "down";
 };
 
+type Metrics = {
+  sessionsOpen: number;
+  sessionsTotalCreated: number;
+  lastError?: string;
+  maxSessions: number;
+  headless: boolean;
+};
+
 export default function Page() {
   const [input, setInput] = useState("");
   const [rows, setRows] = useState<Record<string, Row>>({});
-  const backoffs = useRef<Record<string, number>>({}); // per-ticker backoff (ms)
+  const backoffs = useRef<Record<string, number>>({});
+  const controllers = useRef<Record<string, AbortController>>({});
+  const started = useRef<Record<string, boolean>>({});
+
+  // NEW: backend metrics
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
 
   const client = useMemo(() => {
     const transport = createConnectTransport({ baseUrl: "http://localhost:8080" });
@@ -30,25 +43,38 @@ export default function Page() {
   };
 
   const removeTicker = (t: string) => {
+    // Abort this ticker's stream immediately
+    controllers.current[t]?.abort();
+    delete controllers.current[t];
+    delete started.current[t];
+
+    // Remove from UI
     setRows((prev) => {
-      const { [t]: _, ...rest } = prev;
+      const { [t]: _omit, ...rest } = prev;
       return rest;
     });
   };
 
-  // subscribe with reconnect
+  // Subscribe with reconnect, per-ticker
   useEffect(() => {
-    const aborts: AbortController[] = [];
     const keys = Object.keys(rows);
 
     const run = async (t: string) => {
+      // Guard for Strict Mode double-invoke in dev
+      if (started.current[t]) return;
+      started.current[t] = true;
+
+      if (controllers.current[t]) return;
+
       const ac = new AbortController();
-      aborts.push(ac);
+      controllers.current[t] = ac;
 
       let attempt = 0;
+      let firstImmediateTried = false;
       const nextDelay = () => {
-        const base = backoffs.current[t] ?? 500; // start 500ms
-        const next = Math.min(base * 2, 8000);   // cap 8s
+        if (!firstImmediateTried) { firstImmediateTried = true; return 0; } // immediate retry once
+        const base = backoffs.current[t] ?? 500;  // start 500ms
+        const next = Math.min(base * 2, 8000);    // cap 8s
         backoffs.current[t] = next;
         return base;
       };
@@ -56,8 +82,14 @@ export default function Page() {
 
       while (!ac.signal.aborted && rows[t]) {
         try {
-          setRows((prev) => ({ ...prev, [t]: { ...(prev[t] ?? { ticker: t }), status: attempt ? "reconnecting" : "connecting" } }));
+          setRows((prev) => ({
+            ...prev,
+            [t]: { ...(prev[t] ?? { ticker: t }), status: attempt ? "reconnecting" : "connecting" },
+          }));
+
+          // Start server stream
           const stream = client.streamPrices({ ticker: t }, { signal: ac.signal });
+
           // reset backoff on successful connect
           backoffs.current[t] = 500;
           attempt++;
@@ -85,18 +117,49 @@ export default function Page() {
             }, 300);
           }
         } catch (e) {
+          if (ac.signal.aborted) break; // user removed ticker -> stop
           console.error(`[ui] ${t} stream error`, e);
           setRows((prev) => ({ ...prev, [t]: { ...(prev[t] ?? { ticker: t }), status: "error" } }));
-          if (ac.signal.aborted) break;
           const wait = nextDelay();
           await new Promise((r) => setTimeout(r, wait));
         }
       }
+
+      // Cleanup for this ticker’s controller
+      if (controllers.current[t] === ac) {
+        delete controllers.current[t];
+      }
     };
 
     keys.forEach(run);
-    return () => aborts.forEach((a) => a.abort());
+
+    // Global cleanup (component unmount): abort all
+    return () => {
+      Object.values(controllers.current).forEach((ac) => ac.abort());
+      controllers.current = {};
+      started.current = {};
+    };
   }, [client, Object.keys(rows).join(",")]);
+
+  // NEW: poll backend /metrics every 5s
+  useEffect(() => {
+    let timer: any;
+    const tick = async () => {
+      try {
+        const r = await fetch("http://localhost:8080/metrics");
+        if (r.ok) {
+          const j = (await r.json()) as Metrics;
+          setMetrics(j);
+        }
+      } catch {
+        // ignore transient errors
+      } finally {
+        timer = setTimeout(tick, 5000);
+      }
+    };
+    tick();
+    return () => clearTimeout(timer);
+  }, []);
 
   const sorted = Object.values(rows).sort((a, b) => a.ticker.localeCompare(b.ticker));
 
@@ -146,12 +209,48 @@ export default function Page() {
                  r.status === "error" ? "error" :
                  r.price?.toLocaleString(undefined, { maximumFractionDigits: 4 }) ?? "—"}
               </span>
-              <button onClick={() => removeTicker(r.ticker)} style={{ border: "none", background: "transparent", fontSize: 18, cursor: "pointer" }}>
+              <button
+                onClick={() => removeTicker(r.ticker)}
+                style={{ border: "none", background: "transparent", fontSize: 18, cursor: "pointer" }}
+              >
                 ×
               </button>
             </div>
           </div>
         ))}
+      </div>
+
+      {/* NEW: subtle backend metrics footer */}
+      <div
+        style={{
+          marginTop: 28,
+          padding: "8px 12px",
+          borderRadius: 8,
+          border: "1px dashed #ddd",
+          background: "#fafafa",
+          color: "#333",
+          fontSize: 13,
+          display: "flex",
+          gap: 16,
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <div style={{ opacity: 0.8 }}>
+          <strong>Backend</strong>{" "}
+          <span style={{ opacity: 0.8 }}>
+            {metrics?.headless ? "(headless)" : "(headed)"} • max {metrics?.maxSessions ?? "–"} sessions
+          </span>
+        </div>
+        <div style={{ display: "flex", gap: 12 }}>
+          <span>Sessions open: <strong>{metrics?.sessionsOpen ?? "–"}</strong></span>
+          <span>Total pages: <strong>{metrics?.sessionsTotalCreated ?? "–"}</strong></span>
+          {metrics?.lastError ? (
+            <span title={metrics.lastError} style={{ color: "#b00" }}>
+              last error: {(metrics.lastError || "").slice(0, 40)}{(metrics.lastError || "").length > 40 ? "…" : ""}
+            </span>
+          ) : null}
+        </div>
       </div>
     </main>
   );

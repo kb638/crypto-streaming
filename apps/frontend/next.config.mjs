@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@pluto/api"],
+  reactStrictMode: false, // <— add this line
 };
+
 export default nextConfig;
