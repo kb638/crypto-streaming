@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package market.v1;
+
+// Request to stream one ticker (we'll keep it simple: 1 ticker per stream)
+message StreamRequest {
+  string ticker = 1; // e.g. "BTCUSD", "ETHUSD"
+}
+
+// A price update from TradingView
+message PriceUpdate {
+  string ticker = 1;
+  double price = 2;
+  int64 ts_ms = 3; // server timestamp in ms
+}
+
+// Price streaming service
+service PriceService {
+  // Server-streaming: the server yields many PriceUpdate messages
+  rpc StreamPrices(StreamRequest) returns (stream PriceUpdate);
+}

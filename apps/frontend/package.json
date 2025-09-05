@@ -12,6 +12,7 @@
     "@bufbuild/protobuf": "^2.7.0",
     "@connectrpc/connect": "^2.1.0",
     "@connectrpc/connect-web": "^2.1.0",
+    "@pluto/api": "workspace:*",
     "next": "^14.2.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
