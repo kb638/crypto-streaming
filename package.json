@@ -10,7 +10,9 @@
     "install:all": "pnpm install --recursive",
     "dev:backend": "pnpm --filter @pluto/backend dev",
     "dev:frontend": "pnpm --filter @pluto/frontend dev",
-    "dev": "concurrently -k -n backend,frontend \"pnpm dev:backend\" \"pnpm dev:frontend\""
+     "dev": "concurrently -c blue,magenta -n backend,frontend \"pnpm -F @pluto/backend dev\" \"pnpm -F @pluto/frontend dev\"",
+    "build": "pnpm -r build",
+    "generate": "pnpm -w exec buf generate packages/api"
   },
   "devDependencies": {
     "@bufbuild/buf": "^1.57.0",
@@ -23,4 +25,6 @@
     "@bufbuild/protobuf": "^2.7.0",
     "@connectrpc/connect": "^2.1.0"
   }
+
+
 }

@@ -45,3 +45,19 @@ server.listen(PORT, () => {
   console.log(`[backend] listening on http://localhost:${PORT}`);
   console.log(`[backend] ConnectRPC mounted`);
 });
+
+// Graceful shutdown
+const stop = async (signal: string) => {
+  console.log(`[backend] ${signal} received, shutting down…`);
+  try {
+    server.close(() => console.log("[backend] HTTP server closed"));
+  } catch {}
+  try {
+    const { shutdownBrowser } = await import("./play.js");
+    await shutdownBrowser();
+  } catch {}
+  process.exit(0);
+};
+
+process.on("SIGINT", () => stop("SIGINT"));
+process.on("SIGTERM", () => stop("SIGTERM"));
