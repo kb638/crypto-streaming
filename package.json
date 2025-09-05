@@ -6,14 +6,21 @@
     "apps/*",
     "packages/*"
   ],
+  
   "scripts": {
-    "install:all": "pnpm install --recursive",
-    "dev:backend": "pnpm --filter @pluto/backend dev",
-    "dev:frontend": "pnpm --filter @pluto/frontend dev",
-     "dev": "concurrently -c blue,magenta -n backend,frontend \"pnpm -F @pluto/backend dev\" \"pnpm -F @pluto/frontend dev\"",
-    "generate": "pnpm -w exec buf generate packages/api",
-    "build": "pnpm -r build"
-  },
+    "dev": "concurrently -c blue,magenta -n backend,frontend \"pnpm -F @pluto/backend dev\" \"pnpm -F @pluto/frontend dev\"",
+    "dev:backend": "pnpm -F @pluto/backend dev",
+    "dev:frontend": "pnpm -F @pluto/frontend dev",
+    "build": "pnpm -r build",
+    "start": "concurrently -c blue,magenta -n backend,frontend \"pnpm -F @pluto/backend start\" \"pnpm -F @pluto/frontend start\"",
+    "lint": "pnpm -r lint",
+    "format": "pnpm -r format",
+    "proto:gen": "buf generate packages/api",
+    "proto:lint": "buf lint packages/api",
+    "playwright:install": "pnpm -F @pluto/backend exec playwright install --with-deps"
+  }
+
+,
   "devDependencies": {
     "@bufbuild/buf": "^1.57.0",
     "@bufbuild/protoc-gen-es": "^2.7.0",
