@@ -114,7 +114,7 @@ async function startWatching(ticker: string): Promise<Session> {
         await btn.click({ timeout: 1500 });
         break;
       }
-    } catch { /* ignore */ }
+    } catch { }
   }
 
   // Bridge: page -> node
@@ -126,7 +126,7 @@ async function startWatching(ticker: string): Promise<Session> {
     }
   });
 
-  // Inject scraper – fully isolated in a fresh Function scope to avoid TradingView "__name" collisions
+  // Inject scraper code
   await page.evaluate(() => {
     console.log("[scrape] injected scraper running");
 
@@ -256,6 +256,18 @@ async function startWatching(ticker: string): Promise<Session> {
   await evictIfNeeded();
   metrics.sessionsOpen = sessions.size;
   metrics.sessionsTotalCreated++;
+
+  await page.route("**/*", (route) => {
+  const req = route.request();
+  const type = req.resourceType();
+
+  // Keep essential resources; skip heavy/secondary ones
+  if (type === "image" || type === "media" || type === "font" || type === "stylesheet") {
+    // Comment out if the evaluator wants to see full visuals; otherwise this saves a lot of resources
+    return route.abort();
+  }
+  return route.continue();
+});
   return session;
 }
 
@@ -330,7 +342,6 @@ export function getMetrics() {
     sessionsOpen: metrics.sessionsOpen,
     sessionsTotalCreated: metrics.sessionsTotalCreated,
     lastError: metrics.lastError,
-    maxSessions: cfg.maxSessions,
-    headless: cfg.headless,
+    
   };
 }

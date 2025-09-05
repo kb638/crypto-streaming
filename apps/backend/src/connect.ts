@@ -10,7 +10,7 @@ import { acquireTicker, releaseTicker } from "./play.js";
 /**
  * Basic ticker validation:
  * - Uppercase letters/numbers only
- * - Length 3..15 (covers common crypto pairs like BTCUSD, ETHUSDT, etc.)
+ * - Length 3..15 
  */
 function validateTicker(raw: string | undefined): string {
   const t = (raw ?? "").toUpperCase().trim();

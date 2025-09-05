@@ -16,8 +16,7 @@ type Metrics = {
   sessionsOpen: number;
   sessionsTotalCreated: number;
   lastError?: string;
-  maxSessions: number;
-  headless: boolean;
+  headless?: boolean; // optional; you can remove if you don't want to show headed/headless
 };
 
 export default function Page() {
@@ -27,7 +26,7 @@ export default function Page() {
   const controllers = useRef<Record<string, AbortController>>({});
   const started = useRef<Record<string, boolean>>({});
 
-  // NEW: backend metrics
+  // backend metrics
   const [metrics, setMetrics] = useState<Metrics | null>(null);
 
   const client = useMemo(() => {
@@ -141,7 +140,7 @@ export default function Page() {
     };
   }, [client, Object.keys(rows).join(",")]);
 
-  // NEW: poll backend /metrics every 5s
+  // poll backend /metrics every 5s
   useEffect(() => {
     let timer: any;
     const tick = async () => {
@@ -165,7 +164,7 @@ export default function Page() {
 
   return (
     <main style={{ padding: 24, maxWidth: 680, margin: "0 auto", fontFamily: "system-ui" }}>
-      <h1 style={{ fontSize: 36, fontWeight: 800, marginBottom: 16 }}>Project Pluto — Live Prices</h1>
+      <h1 style={{ fontSize: 36, fontWeight: 800, marginBottom: 16 }}>CoinStream- Live Cryptocurrency Prices</h1>
 
       <div style={{ display: "flex", gap: 8 }}>
         <input
@@ -212,6 +211,8 @@ export default function Page() {
               <button
                 onClick={() => removeTicker(r.ticker)}
                 style={{ border: "none", background: "transparent", fontSize: 18, cursor: "pointer" }}
+                aria-label={`Remove ${r.ticker}`}
+                title={`Remove ${r.ticker}`}
               >
                 ×
               </button>
@@ -220,7 +221,7 @@ export default function Page() {
         ))}
       </div>
 
-      {/* NEW: subtle backend metrics footer */}
+      {/* backend metrics footer (no "max sessions" text) */}
       <div
         style={{
           marginTop: 28,
@@ -231,7 +232,7 @@ export default function Page() {
           color: "#333",
           fontSize: 13,
           display: "flex",
-          gap: 16,
+          gap: 12,
           alignItems: "center",
           justifyContent: "space-between",
         }}
@@ -239,7 +240,7 @@ export default function Page() {
         <div style={{ opacity: 0.8 }}>
           <strong>Backend</strong>{" "}
           <span style={{ opacity: 0.8 }}>
-            {metrics?.headless ? "(headless)" : "(headed)"} • max {metrics?.maxSessions ?? "–"} sessions
+            {metrics?.headless ? "(headless)" : "(headed)"}
           </span>
         </div>
         <div style={{ display: "flex", gap: 12 }}>
